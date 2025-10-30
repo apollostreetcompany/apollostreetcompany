@@ -5,15 +5,17 @@
     // WORKS BACKGROUND
     $(".project-box").hover(
       function () {
-        $(".works").css("background-color", $(this).data("bg"));
-        $(".works")
-          .not(this)
-          .each(function () {
-            $(this).css("background-color", $(this).data("bg"));
-          });
+        var color = $(this).data("bg");
+        $(".works").css({
+          "background-color": color,
+          "background-image": "none",
+        });
       },
       function () {
-        $(".works").css("background-color", "");
+        $(".works").css({
+          "background-color": "",
+          "background-image": "",
+        });
       }
     );
 
@@ -29,6 +31,11 @@
     // SLIDER
     var swiper = new Swiper(".swiper-slider", {
       speed: 600,
+      loop: true,
+      autoplay: {
+        delay: 5000,
+        disableOnInteraction: false,
+      },
       pagination: {
         el: ".swiper-pagination",
         clickable: true,
