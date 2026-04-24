@@ -22,16 +22,16 @@ Success criteria:
 ## State
 ### Done
 - [x] Bead 1: Restore landing page structure and responsive spacing after the UI regression
-- [x] Bead 2: Rebuild the landing page with a polished modern design, local browser QA, and branch push
+- [x] Bead 2: Rebuild the landing page with a polished modern design, local browser QA, branch push, and main merge
 
 ### Now
-- Monitor the remote Bead 2 branch/deployment path
+- Monitor the deployed `main` site
 
 ### Next
-- Decide whether to merge/deploy from `main` or continue through a branch/PR flow
+- Run live browser QA against the production URL after GitHub Pages finishes deploying
 
 ## Open Questions
-- Whether GitHub Pages should deploy directly from `main` or via a branch/PR flow
+- None at the moment
 
 ## Working Set
 - `index.html`
