@@ -26,6 +26,8 @@ Success criteria:
 - 2026-09-25: Positioning stays Japan-US studio; hero keeps "Crossing Borders" until the owner decides the proposed "Two markets. One street." (copy review C-01)
 - 2026-09-25: Hero adds a light navy veil + soft radial shade behind the type (departure from the brief's "no overlays") because the artwork's bright sun sits behind the headline
 - 2026-09-25: DNS fix approved by owner: `www` CNAME -> `apollostreetcompany.github.io.`, delete TXT `v=spf1 include:secureserver.net -all`
+- 2026-09-26: Copy review (Lavish) verdicts: C-02 to C-08 approved as built (remove second hero slide, loader text, RaiseUp; Shogun wording fix; Gochamaze, Christ Lab, Chosen Portion cards). C-01 hero headline: owner chose "use my wording" but sent no text; site keeps "Crossing Borders" until the wording arrives
+- 2026-09-26: apollostreetcompany.com is not in the owner's main GoDaddy account (20 domains, none match); it lives in another GoDaddy account
 
 ## State
 ### Done
@@ -34,18 +36,20 @@ Success criteria:
 - [x] Outage diagnosis (2026-09-25): deploy healthy; HTTPS broken because GoDaddy `www` CNAME points at the apex, so Pages treats www as proxied and issues no certificate
 - [x] Bead 3a: Midjourney hero animation generated, chosen, loop-smoothed, encoded
 - [x] Bead 3b: React rebuild on branch `feat/bead-3-cinematic-rebuild`; build + lint pass; desktop/phone/JP visual QA in Aside
-- [x] Bead 3c: Copy review page generated from a diff of live copy vs `src/content.ts` (8 items, coverage-checked)
+- [x] Bead 3c: Copy review page generated from a diff of live copy vs `src/content.ts` (8 items, coverage-checked); 7 of 8 approved
 
 ### Now
-- Waiting on owner: copy decisions in Lavish (`.lavish/copy-review.html`) and GoDaddy sign-in in the Aside browser
+- Deploying the approved rebuild (Pages -> GitHub Actions, merge to `main`)
+- Waiting on owner: C-01 headline wording; sign-in to the GoDaddy account that owns apollostreetcompany.com (in Aside)
 
 ### Next
-- Apply copy decisions, rebuild, re-QA
+- Apply C-01 headline wording when it arrives, rebuild, redeploy
 - DNS edits at GoDaddy (via Aside), then re-save Pages custom domain, wait for cert, enforce HTTPS
 - Switch Pages to `build_type: workflow`, merge branch to `main`, watch the Actions deploy, live QA over https
 
 ## Open Questions
-- Copy review C-01 to C-08 (hero headline, removals, new project copy, Christ Lab card name)
+- C-01 hero headline wording (EN + JP)
+- Which GoDaddy account owns apollostreetcompany.com
 
 ## Working Set
 - `src/content.ts` (all copy), `src/components/*`, `src/index.css`
