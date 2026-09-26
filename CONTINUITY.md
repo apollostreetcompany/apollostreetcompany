@@ -28,6 +28,8 @@ Success criteria:
 - 2026-09-25: DNS fix approved by owner: `www` CNAME -> `apollostreetcompany.github.io.`, delete TXT `v=spf1 include:secureserver.net -all`
 - 2026-09-26: Copy review (Lavish) verdicts: C-02 to C-08 approved as built (remove second hero slide, loader text, RaiseUp; Shogun wording fix; Gochamaze, Christ Lab, Chosen Portion cards). C-01 hero headline: owner chose "use my wording" but sent no text; site keeps "Crossing Borders" until the wording arrives
 - 2026-09-26: apollostreetcompany.com is not in the owner's main GoDaddy account (20 domains, none match); it lives in another GoDaddy account
+- 2026-09-27: DNS changed at GoDaddy via Aside: `www` CNAME -> `apollostreetcompany.github.io.`; deleted TXT `v=spf1 include:secureserver.net -all` (GoDaddy DKIM `secureserver1/2._domainkey`, `email` CNAME and autodiscover SRV left in place). Pre-change record list kept in the session scratchpad
+- 2026-09-27: Pages certificate approved for www + apex (Let's Encrypt, expires 2026-12-26, auto-renews); HTTPS enforced
 
 ## State
 ### Done
@@ -38,18 +40,17 @@ Success criteria:
 - [x] Bead 3b: React rebuild on branch `feat/bead-3-cinematic-rebuild`; build + lint pass; desktop/phone/JP visual QA in Aside
 - [x] Bead 3c: Copy review page generated from a diff of live copy vs `src/content.ts` (8 items, coverage-checked); 7 of 8 approved
 
+- [x] Bead 3d: Deployed via GitHub Actions (run 36248749581); live assets match local build
+- [x] Bead 3e: DNS fixed, certificate issued, HTTPS enforced; live https QA in Aside (video plays, fonts load, no insecure references, apex/http redirect to https://www)
+
 ### Now
-- Deploying the approved rebuild (Pages -> GitHub Actions, merge to `main`)
-- Waiting on owner: C-01 headline wording; sign-in to the GoDaddy account that owns apollostreetcompany.com (in Aside)
+- Waiting on owner: C-01 hero headline wording (EN + JP)
 
 ### Next
-- Apply C-01 headline wording when it arrives, rebuild, redeploy
-- DNS edits at GoDaddy (via Aside), then re-save Pages custom domain, wait for cert, enforce HTTPS
-- Switch Pages to `build_type: workflow`, merge branch to `main`, watch the Actions deploy, live QA over https
+- Apply C-01 headline wording when it arrives: edit `hero.titleLead`/`hero.titleEm`/`hero.lede` in `src/content.ts`, build, push to `main`
 
 ## Open Questions
 - C-01 hero headline wording (EN + JP)
-- Which GoDaddy account owns apollostreetcompany.com
 
 ## Working Set
 - `src/content.ts` (all copy), `src/components/*`, `src/index.css`
