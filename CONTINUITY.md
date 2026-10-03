@@ -45,9 +45,12 @@ Success criteria:
 
 ### Now
 - Waiting on owner: C-01 hero headline wording (EN + JP)
+- 2026-10-03, ops-gad.14: owner approved the appended EN/JP privacy and website terms disclosure; existing company/portfolio copy and C-01 remain unchanged. The original Pages JavaScript was independently rebuilt byte-for-byte from `31d4a78aef1adbe5687fe671bd867c5ba8dd5d1a`. The candidate adds one public-root pageview per page load for each provider, with no query/hash/referrer, form text, session recording, automatic link capture or persistent visitor identifiers. Datafast's vendor cookieless script conflicts with those limits, so the candidate instead sends an eight-field, memory-only pageview to its existing public ingest endpoint. Its dedicated property is cookieless and private; the original 12 properties and existing Growth billing are exact. No private provider API key is shipped.
+- Candidate checks at 2026-10-03T13:18Z: Node 24 lint/build PASS (six unchanged lint warnings); 21 temporary VM/stub checks PASS, not provider receipt proof. Actual Aside preview desktop and 390×844 phone EN/JP disclosure, mobile Projects navigation, saved-off/reload and reduced-motion readback PASS. Screenshots and logs remain outside Git in `/Users/future/dev/ops-metrics-evidence/apollo-preview-*` and `apollo-root-*`. HTTPS/production-host/root-path gates disable collection on this local preview. Live browser CORS/provider delivery, exact Pages release and production saved-off suppression are still NOT VERIFIED. Root owns portfolio tracker `ops-gad.14`, deployment and live acceptance; no autoreview or replacement review runs.
 
 ### Next
 - Apply C-01 headline wording when it arrives: edit `hero.titleLead`/`hero.titleEm`/`hero.lede` in `src/content.ts`, build, push to `main`
+- ops-gad.14: Publish this candidate through a normal PR, then verify the exact successful Pages revision/assets, an actual sanitized PostHog event, the real Datafast browser request and provider receipt, and production saved-off/reload suppression. If the minimal Datafast payload is rejected, inspect that response and repair without broadening collection. This landing-page slice does not complete the broader 86-domain, six-part setup.
 
 ## Open Questions
 - C-01 hero headline wording (EN + JP)
