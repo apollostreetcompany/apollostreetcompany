@@ -1,4 +1,5 @@
 import { contactEmail, footer, nav } from '@/content'
+import { AnalyticsPrivacy } from '@/components/AnalyticsPrivacy'
 
 export function Footer() {
   return (
@@ -16,6 +17,7 @@ export function Footer() {
           </a>
         </address>
       </div>
+      <AnalyticsPrivacy />
     </footer>
   )
 }

@@ -228,3 +228,41 @@ export const contact = {
 export const footer = {
   logoAlt: 'Apollo Street Company',
 }
+
+export const analyticsPrivacy = {
+  title: t('Privacy & website terms', 'プライバシーとウェブサイト利用条件'),
+  disclosure: t(
+    'Public-page visits may be measured with PostHog and Datafast. We do not collect form text or session recordings. You can turn analytics off below and save that choice for future visits.',
+    '公開ページへの訪問をPostHogとDatafastで計測する場合があります。フォームの入力内容やセッション録画は収集しません。下のボタンで計測をオフにし、今後の訪問にも適用する設定を保存できます。',
+  ),
+  terms: t(
+    'Linked products have their own terms. Contact links open your email app.',
+    'リンク先の各サービスには、それぞれの利用条件が適用されます。お問い合わせリンクを選ぶと、メールアプリが開きます。',
+  ),
+  turnOff: t('Turn analytics off', 'アクセス計測をオフにする'),
+  offSaved: t('Analytics off — saved', 'アクセス計測オフ・保存済み'),
+  choice: {
+    checking: t('Checking your analytics preference.', 'アクセス計測の設定を確認しています。'),
+    on: t('Analytics is allowed. Provider availability is shown below.', 'アクセス計測は許可されています。計測サービスの状態は下に表示されます。'),
+    'saved-off': t('Analytics is off for this visit and future visits in this browser.', 'このブラウザでは、今回と今後の訪問のアクセス計測がオフになっています。'),
+    'storage-unavailable': t('Analytics is off because this browser cannot reliably save a preference.', '設定を確実に保存できないため、アクセス計測はオフになっています。'),
+    'storage-invalid': t('Analytics is off because the saved preference is invalid.', '保存された設定が無効なため、アクセス計測はオフになっています。'),
+    'off-unsaved': t('Analytics is off for this visit. Your choice could not be saved for future visits.', '今回の訪問のアクセス計測はオフです。今後の訪問の設定は保存できませんでした。'),
+  },
+  signalOff: t('Analytics is off because your browser requests no tracking.', 'ブラウザの追跡拒否設定により、アクセス計測はオフになっています。'),
+  productionOnly: t('Analytics is off here. Measurement is limited to the public production page.', 'ここではアクセス計測はオフです。公開中の本番ページのみが計測対象です。'),
+  posthog: {
+    idle: t('PostHog is not loaded.', 'PostHogは読み込まれていません。'),
+    loading: t('PostHog is loading; event delivery is unverified.', 'PostHogを読み込んでいます。データの送信は未確認です。'),
+    loaded: t('PostHog is loaded; event delivery is unverified.', 'PostHogは読み込まれています。データの送信は未確認です。'),
+    failed: t('PostHog could not load or start. Event delivery is unverified.', 'PostHogを読み込むか開始することができませんでした。データの送信は未確認です。'),
+    stopped: t('PostHog is stopped.', 'PostHogは停止しています。'),
+  },
+  datafast: {
+    idle: t('Datafast is not started.', 'Datafastは開始されていません。'),
+    loading: t('Datafast is sending a public-page visit; delivery is unverified.', 'Datafastで公開ページへの訪問を送信しています。データの送信は未確認です。'),
+    loaded: t('Datafast accepted a pageview request. Visitor estimates are checked separately.', 'Datafastがページ閲覧の送信を受け付けました。訪問者数の推定値は別途確認します。'),
+    failed: t('Datafast could not send this visit. Event delivery is unverified.', 'Datafastで今回の訪問を送信できませんでした。データの送信は未確認です。'),
+    stopped: t('Datafast is stopped.', 'Datafastは停止しています。'),
+  },
+}
