@@ -3,6 +3,13 @@ const POSTHOG_HOST = 'https://us.i.posthog.com'
 const PREFERENCE_KEY = 'asc-analytics-off'
 const productionHosts = new Set(['apollostreetcompany.com', 'www.apollostreetcompany.com'])
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const portfolioDestinations: Readonly<Record<string, string>> = Object.freeze({
+  'shogun-sauce': 'https://www.shogunsauces.com/',
+  gochamaze: 'https://gochamaze.pages.dev/',
+  'christ-lab': 'https://christlab.ai/',
+  'chosen-portion': 'https://chosenportionapp.com/',
+  'japan-visa-guide': 'https://japanvisa.guide/',
+})
 
 export const datafastProperty = Object.freeze({
   websiteId: '6ac0f66c65d875aa9cccb2fb',
@@ -61,6 +68,8 @@ let loadTimer: number | undefined
 let controller: AbortController | undefined
 let datafastController: AbortController | undefined
 let datafastTimer: number | undefined
+let datafastSessionId: string | undefined
+const datafastGoalControllers = new Set<AbortController>()
 
 export function getAnalyticsState() {
   return state
@@ -167,6 +176,7 @@ function stopPostHog() {
 function stopDatafast() {
   datafastController?.abort()
   window.clearTimeout(datafastTimer)
+  datafastGoalControllers.forEach((goalController) => goalController.abort())
 }
 
 export function datafastPageviewPayload() {
@@ -177,8 +187,39 @@ export function datafastPageviewPayload() {
     href: `https://${window.location.hostname}/`,
     referrer: null,
     visitorId: window.crypto.randomUUID(),
-    sessionId: `s${window.crypto.randomUUID()}`,
+    sessionId: datafastSessionId ??= `s${window.crypto.randomUUID()}`,
     cookieless: true,
+  }
+}
+
+export function trackPortfolioOutlink(projectId: string, href: string) {
+  if (portfolioDestinations[projectId] !== href || !permitted() || navigator.webdriver ||
+    typeof window.fetch !== 'function' || typeof window.AbortController !== 'function') return
+
+  const goalController = new AbortController()
+  datafastGoalControllers.add(goalController)
+  const timer = window.setTimeout(() => goalController.abort(), 8000)
+  const cleanup = () => {
+    window.clearTimeout(timer)
+    datafastGoalControllers.delete(goalController)
+  }
+  try {
+    const payload = {
+      ...datafastPageviewPayload(),
+      type: 'custom',
+      extraData: { eventName: 'portfolio_outlink_clicked', project_slug: projectId, surface: 'portfolio' },
+    }
+    void window.fetch('https://datafa.st/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      keepalive: false,
+      signal: goalController.signal,
+      body: JSON.stringify(payload),
+    }).catch(() => {}).finally(cleanup)
+  } catch {
+    cleanup()
   }
 }
 
