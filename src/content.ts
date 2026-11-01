@@ -232,8 +232,8 @@ export const footer = {
 export const analyticsPrivacy = {
   title: t('Privacy & website terms', 'プライバシーとウェブサイト利用条件'),
   disclosure: t(
-    'Public-page visits may be measured with PostHog and Datafast. We do not collect form text or session recordings. You can turn analytics off below and save that choice for future visits.',
-    '公開ページへの訪問をPostHogとDatafastで計測する場合があります。フォームの入力内容やセッション録画は収集しません。下のボタンで計測をオフにし、今後の訪問にも適用する設定を保存できます。',
+    'Public-page visits may be measured with PostHog and Datafast. Datafast may also count selections of project links and record which project was selected. We do not collect form text or session recordings. You can turn analytics off below and save that choice for future visits.',
+    '公開ページへの訪問をPostHogとDatafastで計測する場合があります。Datafastでは、プロジェクトのリンクが選択された回数と、そのプロジェクトを記録する場合もあります。フォームの入力内容やセッション録画は収集しません。下のボタンで計測をオフにし、今後の訪問にも適用する設定を保存できます。',
   ),
   terms: t(
     'Linked products have their own terms. Contact links open your email app.',
