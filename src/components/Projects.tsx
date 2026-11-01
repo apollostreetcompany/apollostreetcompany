@@ -1,5 +1,7 @@
 import { ArrowUpRight } from 'lucide-react'
+import type { MouseEvent } from 'react'
 import { works, type Project } from '@/content'
+import { trackPortfolioOutlink } from '@/lib/analytics'
 import { useT } from '@/lib/i18n'
 import { Reveal } from '@/lib/motion'
 import { cn } from '@/lib/utils'
@@ -10,6 +12,10 @@ const spans = ['lg:col-span-3', 'lg:col-span-3', 'lg:col-span-2', 'lg:col-span-2
 function ProjectCard({ project, index }: { project: Project; index: number }) {
   const t = useT()
   const wide = index < 2
+  const recordActivation = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!event.isTrusted || event.defaultPrevented) return
+    trackPortfolioOutlink(project.id, event.currentTarget.href)
+  }
   return (
     <Reveal
       as="article"
@@ -20,6 +26,8 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         href={project.href}
         target="_blank"
         rel="noreferrer"
+        onClick={(event) => { if (event.button === 0) recordActivation(event) }}
+        onAuxClick={(event) => { if (event.button === 1) recordActivation(event) }}
         className="liquid-glass flex h-full flex-col rounded-3xl bg-foreground/[0.02] p-3 transition-[transform,background-color] duration-500 hover:-translate-y-1 hover:bg-foreground/[0.05]"
       >
         <div
