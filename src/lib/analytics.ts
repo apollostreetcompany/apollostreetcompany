@@ -7,6 +7,13 @@ const PREFERENCE_KEY = 'asc-analytics-off'
 const productionHosts = new Set(['apollostreetcompany.com', 'www.apollostreetcompany.com'])
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+export const datafastProperty = Object.freeze({
+  websiteId: '6ac0f66c65d875aa9cccb2fb',
+  trackingId: 'dfid_Iv3lSSfGtZs0RyiunPS8J',
+  script: 'https://datafa.st/js/script.cookieless.js',
+  cookieless: true,
+})
+
 type Preference = 'checking' | 'on' | 'saved-off' | 'storage-unavailable' | 'storage-invalid' | 'off-unsaved'
 type ProviderState = 'idle' | 'loading' | 'loaded' | 'failed' | 'stopped'
 
@@ -15,6 +22,7 @@ type AnalyticsState = {
   production: boolean
   browserSignal: boolean
   posthog: ProviderState
+  datafast: ProviderState
   openpanel: ProviderState
 }
 
@@ -46,6 +54,7 @@ let state: AnalyticsState = {
   production: false,
   browserSignal: false,
   posthog: 'idle',
+  datafast: 'idle',
   openpanel: 'idle',
 }
 const listeners = new Set<() => void>()
@@ -55,6 +64,8 @@ let pageviewCaptured = false
 let script: HTMLScriptElement | undefined
 let loadTimer: number | undefined
 let controller: AbortController | undefined
+let datafastController: AbortController | undefined
+let datafastTimer: number | undefined
 let openPanel: OpenPanel | undefined
 let openPanelController: AbortController | undefined
 let openPanelStopped = false
@@ -161,6 +172,62 @@ function stopPostHog() {
   }
 }
 
+function stopDatafast() {
+  datafastController?.abort()
+  window.clearTimeout(datafastTimer)
+}
+
+export function datafastPageviewPayload() {
+  return {
+    type: 'pageview',
+    websiteId: datafastProperty.trackingId,
+    domain: 'www.apollostreetcompany.com',
+    href: `https://${window.location.hostname}/`,
+    referrer: null,
+    visitorId: window.crypto.randomUUID(),
+    sessionId: `s${window.crypto.randomUUID()}`,
+    cookieless: true,
+  }
+}
+
+async function sendDatafastPageview() {
+  if (!permitted() || state.datafast !== 'idle') return
+  if (navigator.webdriver) {
+    update({ datafast: 'stopped' })
+    return
+  }
+  datafastController = new AbortController()
+  update({ datafast: 'loading' })
+  datafastTimer = window.setTimeout(() => {
+    if (state.datafast !== 'loading') return
+    stopDatafast()
+    update({ datafast: 'failed' })
+  }, 8000)
+  try {
+    const payload = datafastPageviewPayload()
+    if (!permitted()) {
+      stopDatafast()
+      update({ datafast: 'stopped' })
+      return
+    }
+    const response = await window.fetch('https://datafa.st/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      keepalive: false,
+      signal: datafastController.signal,
+      body: JSON.stringify(payload),
+    })
+    if (getAnalyticsState().datafast !== 'loading' || !permitted()) return
+    update({ datafast: response.ok ? 'loaded' : 'failed' })
+  } catch {
+    if (getAnalyticsState().datafast === 'loading') update({ datafast: 'failed' })
+  } finally {
+    window.clearTimeout(datafastTimer)
+  }
+}
+
 function stopOpenPanel() {
   openPanelStopped = true
   openPanelController?.abort()
@@ -227,13 +294,14 @@ function startOpenPanel() {
 export function turnAnalyticsOff() {
   offInMemory = true
   stopPostHog()
+  stopDatafast()
   stopOpenPanel()
   let preference: Preference = 'off-unsaved'
   try {
     localStorage.setItem(PREFERENCE_KEY, '1')
     if (localStorage.getItem(PREFERENCE_KEY) === '1') preference = 'saved-off'
   } catch {}
-  update({ preference, posthog: 'stopped', openpanel: 'stopped' })
+  update({ preference, posthog: 'stopped', datafast: 'stopped', openpanel: 'stopped' })
 }
 
 export function initializeAnalytics() {
@@ -250,15 +318,17 @@ export function initializeAnalytics() {
     update({ preference, browserSignal: browserOptOut() })
     if (!permitted()) {
       stopPostHog()
+      stopDatafast()
       stopOpenPanel()
-      update({ posthog: 'stopped', openpanel: 'stopped' })
+      update({ posthog: 'stopped', datafast: 'stopped', openpanel: 'stopped' })
     }
   })
   if (!permitted()) return
   if (typeof window.fetch !== 'function' || typeof window.AbortController !== 'function') {
-    update({ posthog: 'failed', openpanel: 'failed' })
+    update({ posthog: 'failed', datafast: 'failed', openpanel: 'failed' })
     return
   }
+  void sendDatafastPageview()
   startOpenPanel()
   if (window.posthog) {
     update({ posthog: 'failed' })

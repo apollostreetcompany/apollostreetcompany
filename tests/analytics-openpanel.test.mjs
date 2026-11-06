@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { randomUUID } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import vm from 'node:vm'
@@ -37,6 +38,7 @@ async function fixture(options = {}) {
   }
   const scripts = []
   const requests = []
+  const datafastRequests = []
   const instances = []
   const timers = new Map()
   let now = 0
@@ -48,7 +50,13 @@ async function fixture(options = {}) {
   }
   const clearTimer = (id) => { timers.delete(id) }
   const fetch = (url, init) => {
-    requests.push({ url, init, payload: JSON.parse(init.body) })
+    const request = { url, init, payload: JSON.parse(init.body) }
+    if (url === 'https://datafa.st/api/events') {
+      datafastRequests.push(request)
+      if (options.pendingDatafast) return new Promise(() => {})
+      return Promise.resolve({ ok: true })
+    }
+    requests.push(request)
     if (options.pending) return new Promise((resolve) => { resolvePending = resolve })
     return Promise.resolve({ status: 200, text: async () => '{"deviceId":"device","sessionId":"session"}' })
   }
@@ -63,6 +71,7 @@ async function fixture(options = {}) {
   const window = {
     location: new URL(options.url ?? 'https://www.apollostreetcompany.com/?email=private@example.com#secret'),
     fetch,
+    crypto: { randomUUID },
     AbortController,
     setTimeout: setTimer,
     clearTimeout: clearTimer,
@@ -120,7 +129,7 @@ async function fixture(options = {}) {
     await settle()
   }
   return {
-    analytics: app.namespace, documentListeners, entries, history, instances, requests, scripts, window,
+    analytics: app.namespace, datafastRequests, documentListeners, entries, history, instances, requests, scripts, window,
     advance, settle,
     resolvePending: () => resolvePending({ status: 200, text: async () => '{"deviceId":"device","sessionId":"session"}' }),
     storageEvent: (key = 'asc-analytics-off') => (windowListeners.get('storage') ?? []).forEach((fn) => fn({ key })),
@@ -145,6 +154,20 @@ test('one SDK instance sends only a minimized automatic root pageview', async ()
     assert.equal(config.sessionReplay.enabled, false)
     assert.equal((f.documentListeners.get('click') ?? []).length, 0)
     assert.equal(f.requests.length, 1)
+    assert.equal(f.datafastRequests.length, 1)
+    const df = f.datafastRequests[0]
+    assert.equal(df.payload.type, 'pageview')
+    assert.equal(df.payload.websiteId, 'dfid_Iv3lSSfGtZs0RyiunPS8J')
+    assert.equal(df.payload.domain, 'www.apollostreetcompany.com')
+    assert.equal(df.payload.href, `https://${host}/`)
+    assert.equal(df.payload.referrer, null)
+    assert.equal(df.payload.cookieless, true)
+    assert.match(df.payload.visitorId, /^[a-f0-9-]{36}$/i)
+    assert.match(df.payload.sessionId, /^s[a-f0-9-]{36}$/i)
+    assert.equal(df.init.credentials, 'omit')
+    assert.equal(df.init.referrerPolicy, 'no-referrer')
+    assert.equal(df.init.keepalive, false)
+    assert.equal(f.analytics.getAnalyticsState().datafast, 'loaded')
     const { url, init, payload } = f.requests[0]
     assert.equal(url, 'https://api.openpanel.dev/track')
     assert.equal(init.method, 'POST')
@@ -184,6 +207,7 @@ test('saved choice, browser signals, unsafe storage and non-production pages pre
     await f.advance()
     assert.equal(f.instances.length, 0, JSON.stringify(options))
     assert.equal(f.requests.length, 0, JSON.stringify(options))
+    assert.equal(f.datafastRequests.length, 0, JSON.stringify(options))
     assert.equal(f.scripts.length, 0, JSON.stringify(options))
   }
   const automation = await fixture({ navigator: { webdriver: true } })
@@ -191,6 +215,7 @@ test('saved choice, browser signals, unsafe storage and non-production pages pre
   await automation.advance()
   assert.equal(automation.instances.length, 0)
   assert.equal(automation.requests.length, 0)
+  assert.equal(automation.datafastRequests.length, 0)
 })
 
 test('automatic route views remain limited to the production root', async () => {
@@ -274,4 +299,16 @@ test('cross-tab opt-out aborts an in-flight request and late completion cannot f
   await f.advance()
   assert.equal(f.requests.length, 1)
   assert.equal(f.analytics.getAnalyticsState().openpanel, 'stopped')
+})
+
+test('the shared opt-out aborts an in-flight Datafast pageview too', async () => {
+  const f = await fixture({ pendingDatafast: true })
+  f.analytics.initializeAnalytics()
+  assert.equal(f.datafastRequests.length, 1)
+  assert.equal(f.datafastRequests[0].init.signal.aborted, false)
+  f.analytics.turnAnalyticsOff()
+  assert.equal(f.datafastRequests[0].init.signal.aborted, true)
+  assert.equal(f.analytics.getAnalyticsState().datafast, 'stopped')
+  await f.advance()
+  assert.equal(f.requests.length, 0)
 })
