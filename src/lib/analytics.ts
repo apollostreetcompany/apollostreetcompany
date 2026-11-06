@@ -1,5 +1,8 @@
+import { OpenPanel } from '@openpanel/web'
+
 const POSTHOG_TOKEN = 'phc_A3jp2cuP6qTXg627mtsrzMjgdhDGzZudciWkf3g8u457'
 const POSTHOG_HOST = 'https://us.i.posthog.com'
+const OPENPANEL_CLIENT_ID = 'b7c2b5a9-dc9c-4eb4-bb03-7a3abb7e8595'
 const PREFERENCE_KEY = 'asc-analytics-off'
 const productionHosts = new Set(['apollostreetcompany.com', 'www.apollostreetcompany.com'])
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -20,6 +23,7 @@ type AnalyticsState = {
   browserSignal: boolean
   posthog: ProviderState
   datafast: ProviderState
+  openpanel: ProviderState
 }
 
 type PostHogClient = {
@@ -51,6 +55,7 @@ let state: AnalyticsState = {
   browserSignal: false,
   posthog: 'idle',
   datafast: 'idle',
+  openpanel: 'idle',
 }
 const listeners = new Set<() => void>()
 let initialized = false
@@ -61,6 +66,9 @@ let loadTimer: number | undefined
 let controller: AbortController | undefined
 let datafastController: AbortController | undefined
 let datafastTimer: number | undefined
+let openPanel: OpenPanel | undefined
+let openPanelController: AbortController | undefined
+let openPanelStopped = false
 
 export function getAnalyticsState() {
   return state
@@ -220,16 +228,80 @@ async function sendDatafastPageview() {
   }
 }
 
+function stopOpenPanel() {
+  openPanelStopped = true
+  openPanelController?.abort()
+  if (openPanel) {
+    openPanel.options.disabled = true
+    openPanel.queue.length = 0
+    openPanel.clear()
+  }
+}
+
+function startOpenPanel() {
+  if (!permitted() || state.openpanel !== 'idle') return
+  if (navigator.webdriver) {
+    update({ openpanel: 'stopped' })
+    return
+  }
+  const abort = new AbortController()
+  openPanelController = abort
+  update({ openpanel: 'loading' })
+  try {
+    const client = new OpenPanel({
+      clientId: OPENPANEL_CLIENT_ID,
+      trackScreenViews: true,
+      trackOutgoingLinks: false,
+      trackAttributes: false,
+      trackHashChanges: false,
+      sessionReplay: { enabled: false },
+      filter: (event) => {
+        if (openPanelStopped || !permitted() || navigator.webdriver ||
+          event.type !== 'track' || event.payload.name !== 'screen_view') return false
+        // The SDK includes the full URL, title and referrer by default.
+        event.payload = {
+          name: 'screen_view',
+          properties: { __path: `https://${window.location.hostname}/` },
+        }
+        return true
+      },
+    })
+    // Keep the SDK transport, but make in-flight requests abortable and omit referrers and credentials.
+    const send = client.api.fetch.bind(client.api)
+    client.api.fetch = (path, payload, options) => {
+      if (openPanelStopped || !permitted()) return Promise.resolve(null)
+      return send(path, payload, {
+        ...options,
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        keepalive: false,
+        signal: abort.signal,
+      })
+    }
+    openPanel = client
+    if (!permitted()) {
+      stopOpenPanel()
+      update({ openpanel: 'stopped' })
+      return
+    }
+    update({ openpanel: 'loaded' })
+  } catch {
+    stopOpenPanel()
+    update({ openpanel: 'failed' })
+  }
+}
+
 export function turnAnalyticsOff() {
   offInMemory = true
   stopPostHog()
   stopDatafast()
+  stopOpenPanel()
   let preference: Preference = 'off-unsaved'
   try {
     localStorage.setItem(PREFERENCE_KEY, '1')
     if (localStorage.getItem(PREFERENCE_KEY) === '1') preference = 'saved-off'
   } catch {}
-  update({ preference, posthog: 'stopped', datafast: 'stopped' })
+  update({ preference, posthog: 'stopped', datafast: 'stopped', openpanel: 'stopped' })
 }
 
 export function initializeAnalytics() {
@@ -247,15 +319,17 @@ export function initializeAnalytics() {
     if (!permitted()) {
       stopPostHog()
       stopDatafast()
-      update({ posthog: 'stopped', datafast: 'stopped' })
+      stopOpenPanel()
+      update({ posthog: 'stopped', datafast: 'stopped', openpanel: 'stopped' })
     }
   })
   if (!permitted()) return
   if (typeof window.fetch !== 'function' || typeof window.AbortController !== 'function') {
-    update({ posthog: 'failed', datafast: 'failed' })
+    update({ posthog: 'failed', datafast: 'failed', openpanel: 'failed' })
     return
   }
   void sendDatafastPageview()
+  startOpenPanel()
   if (window.posthog) {
     update({ posthog: 'failed' })
     return

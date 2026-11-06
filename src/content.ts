@@ -232,8 +232,8 @@ export const footer = {
 export const analyticsPrivacy = {
   title: t('Privacy & website terms', 'プライバシーとウェブサイト利用条件'),
   disclosure: t(
-    'Public-page visits may be measured with PostHog and Datafast. We do not collect form text or session recordings. You can turn analytics off below and save that choice for future visits.',
-    '公開ページへの訪問をPostHogとDatafastで計測する場合があります。フォームの入力内容やセッション録画は収集しません。下のボタンで計測をオフにし、今後の訪問にも適用する設定を保存できます。',
+    'Public-page visits may be measured with PostHog, Datafast and OpenPanel. We do not collect form text or session recordings. You can turn analytics off below and save that choice for future visits.',
+    '公開ページへの訪問をPostHog、Datafast、OpenPanelで計測する場合があります。フォームの入力内容やセッション録画は収集しません。下のボタンで計測をオフにし、今後の訪問にも適用する設定を保存できます。',
   ),
   terms: t(
     'Linked products have their own terms. Contact links open your email app.',
@@ -264,5 +264,12 @@ export const analyticsPrivacy = {
     loaded: t('Datafast accepted a pageview request. Visitor estimates are checked separately.', 'Datafastがページ閲覧の送信を受け付けました。訪問者数の推定値は別途確認します。'),
     failed: t('Datafast could not send this visit. Event delivery is unverified.', 'Datafastで今回の訪問を送信できませんでした。データの送信は未確認です。'),
     stopped: t('Datafast is stopped.', 'Datafastは停止しています。'),
+  },
+  openpanel: {
+    idle: t('OpenPanel is not started.', 'OpenPanelは開始されていません。'),
+    loading: t('OpenPanel is starting; event delivery is unverified.', 'OpenPanelを開始しています。データの送信は未確認です。'),
+    loaded: t('OpenPanel is started; event delivery is unverified.', 'OpenPanelは開始されています。データの送信は未確認です。'),
+    failed: t('OpenPanel could not start. Event delivery is unverified.', 'OpenPanelを開始できませんでした。データの送信は未確認です。'),
+    stopped: t('OpenPanel is stopped.', 'OpenPanelは停止しています。'),
   },
 }

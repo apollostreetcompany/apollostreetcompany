@@ -40,6 +40,7 @@ export function AnalyticsPrivacy() {
             <div className="space-y-1">
               <p>{t(analyticsPrivacy.posthog[state.posthog])}</p>
               <p>{t(analyticsPrivacy.datafast[state.datafast])}</p>
+              <p>{t(analyticsPrivacy.openpanel[state.openpanel])}</p>
             </div>
           )}
         </div>
